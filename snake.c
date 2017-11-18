@@ -4,7 +4,8 @@
 #include <pthread.h>
 #include <term.h>
 #include <locale.h>
-
+#include <SDL/SDL.h>
+#include <SDL/SDL_mixer.h>
 
 #define termclean() printf("\033[H\033[J")
 struct snake
@@ -24,9 +25,7 @@ struct posfood
 typedef struct posfood* FOODP;
 
 void *getkey(void *p);
-void *snd();
-void *eatsnd();
-void draw(SNAKE p, int *add, FOODP food);
+void draw(SNAKE p, int *add, FOODP food, Mix_Chunk * snd);
 void movepieces(SNAKE p, int add);
 void newfoodpos(FOODP);
 int collision(SNAKE p);
@@ -36,14 +35,19 @@ int waitchar=1;
 int row,col;
 int main()
 {
+  //init SDL sound mixer
+  SDL_Init(SDL_INIT_AUDIO);
+
+  Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT,2,2048);
   
+  Mix_Music * music = Mix_LoadMUS("music.wav"); //background music
+  Mix_Chunk * snd = Mix_LoadWAV("suono.wav"); //eat sound
+
+ 
+  Mix_PlayMusic(music,-1); 
+  //
+
   setlocale(LC_ALL, "");
-
-  /* One-time initialization near the beginning of your program */
-  setupterm(NULL, STDOUT_FILENO, NULL);
-
-  /* Enter bold mode */
-  putp(enter_bold_mode);
 
   initscr(); /* Start curses mode */
   getmaxyx(stdscr,row,col);
@@ -77,11 +81,11 @@ int main()
   int add = 0;
   char direction='w';
     
-  draw(head, &add, food); 
+  draw(head, &add, food, snd); 
   
   //keyboard and music threads
   pthread_t readkey, playsound;
-  pthread_create(&playsound, NULL, snd, NULL);
+  
   
   int alive = 1;
   while(alive)
@@ -106,7 +110,7 @@ int main()
     	      		  
 	}
      
-     draw(head, &add, food);
+     draw(head, &add, food, snd);
 
      refresh();
      if (waitchar) pthread_create(&readkey,NULL, getkey, &direction);
@@ -118,21 +122,17 @@ int main()
   //snake color
   init_pair(2, COLOR_RED, COLOR_BLACK);
   
-  draw(head, &add, food);
+  draw(head, &add, food, snd);
   getch();
   endwin();  
-  system("killall aplay");  
+  Mix_FreeMusic(music);
+  Mix_FreeChunk(snd);
+  Mix_CloseAudio();
   printf("\n\nscreen size %d X %d\n snake : %d\n\n",row,col,snakelen(head));
-  /* Turn it off! */
-  putp(exit_attribute_mode);	
+  	
   
 }
 
-void*snd()
-{
-   while (1) system("aplay music.wav >/dev/null 2>&1");
-}
-void*eatsnd(){system("aplay suono.wav >/dev/null 2>&1");}
 
 void *getkey(void *p) 
 {   
@@ -208,15 +208,14 @@ void newfoodpos(FOODP food)
 }
 
 
-void draw(SNAKE p, int *add, FOODP food)
-	{ 
-	  if (p -> posx == food -> posx && p -> posy == food -> posy) 
-		{
-	  pthread_t eatsound;
-	  pthread_create(&eatsound, NULL, eatsnd, NULL);
-	  newfoodpos(food);
-	  *add = 1;
-	}
+void draw(SNAKE p, int *add, FOODP food, Mix_Chunk * snd)
+{ 
+  if (p -> posx == food -> posx && p -> posy == food -> posy) 
+    {
+      Mix_PlayChannel(-1,snd,0);
+      newfoodpos(food);
+      *add = 1;
+    }
   else *add = 0;
   
   attron(COLOR_PAIR(1)); //BACKGROUND COLOR
@@ -231,7 +230,7 @@ void draw(SNAKE p, int *add, FOODP food)
   
   attron(COLOR_PAIR(3)); //FOOD COLOR
   mvprintw(food -> posx, food -> posy,"■");
-  move(row+1,col+1); //hide cursor
+  move(row+1,col+1);
 }
 
 int collision(SNAKE p)
