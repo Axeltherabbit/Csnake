@@ -2,7 +2,6 @@
 Simple snake for linux
 ### requirement
 - ncurses
-- aplay
 - sdl
 ### clone
 ```
