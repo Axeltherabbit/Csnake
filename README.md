@@ -1,4 +1,5 @@
 # Csnake
+Simple snake for linux
 ### requirement
 - ncurses
 - aplay
