@@ -82,8 +82,8 @@ int main()
     
   draw(head, &add, food, snd); 
   
-  //keyboard and music threads
-  pthread_t readkey, playsound;
+  //keyboard thread
+  pthread_t readkey;
   
   
   int alive = 1;
@@ -127,7 +127,7 @@ int main()
   Mix_FreeMusic(music);
   Mix_FreeChunk(snd);
   Mix_CloseAudio();
-  printf("\n\nscreen size %d X %d\n snake : %d\n\n",row,col,snakelen(head));
+  printf("\n\nscreen size %d X %d\nsnake : %d\n\n",row,col,snakelen(head));
   	
   
 }
