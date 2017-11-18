@@ -5,3 +5,5 @@ Simple snake for linux
 - aplay
 ### compile
 `gcc snake.c -lncursesw -lpthread -D_XOPEN_SOURCE_EXTENDED -o snake`
+### play
+`./snake`
