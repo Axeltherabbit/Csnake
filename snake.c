@@ -1,8 +1,6 @@
 #include <ncurses.h>
 #include <stdlib.h>
-#include <unistd.h> 
 #include <pthread.h>
-#include <term.h>
 #include <locale.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_mixer.h>
