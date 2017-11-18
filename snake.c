@@ -231,6 +231,7 @@ void draw(SNAKE p, int *add, FOODP food)
   
   attron(COLOR_PAIR(3)); //FOOD COLOR
   mvprintw(food -> posx, food -> posy,"■");
+  move(row+1,col+1); //hide cursor
 }
 
 int collision(SNAKE p)
