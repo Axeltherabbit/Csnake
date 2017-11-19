@@ -1,5 +1,5 @@
 #include <ncurses.h>
-#include <stdlib.h>
+#include <stdlib.h> 
 #include <unistd.h>
 #include <pthread.h>
 #include <locale.h>
@@ -30,6 +30,7 @@ void newfoodpos(FOODP);
 int collision(SNAKE p);
 int snakelen(SNAKE p);
 
+int stop = 0; //stop game variable
 int waitchar=1;
 int row,col;
 int main()
@@ -78,12 +79,12 @@ int main()
   
 
   int add = 0;
-  char direction='w';
+  int direction='w';
     
   draw(head, &add, food, snd); 
   
-  //keyboard thread
-  pthread_t readkey;
+  //keyboard and music threads
+  pthread_t readkey, playsound;
   
   
   int alive = 1;
@@ -94,16 +95,16 @@ int main()
 	
       switch (direction)
 	{
-	  case 'w':
+	  case 'w': case KEY_UP:
 	      head -> posx -= 1;
 	      break;
-	  case 'a':
+	  case 'a': case KEY_LEFT:
               head -> posy -= 1;
 	      break;
-	  case 'd':
+	  case 'd': case KEY_RIGHT:
 	      head -> posy += 1;
 	      break;
-	  case 's':
+	  case 's': case KEY_DOWN:
 	      head -> posx += 1;
 	      break;
     	      		  
@@ -114,6 +115,14 @@ int main()
      refresh();
      if (waitchar) pthread_create(&readkey,NULL, getkey, &direction);
      alive = collision(head);
+     if (stop)
+	{
+	 
+	 mvprintw(0,0,"press SPACE to resume the game");
+ 	 char c='a';
+	 while(c != ' ') c = getch();
+	 stop = 0;
+	}
      usleep(1000/10*1000); 
      
      }
@@ -127,7 +136,7 @@ int main()
   Mix_FreeMusic(music);
   Mix_FreeChunk(snd);
   Mix_CloseAudio();
-  printf("\n\nscreen size %d X %d\nsnake : %d\n\n",row,col,snakelen(head));
+  printf("\n\nscreen size %d X %d\n snake : %d\n\n",row,col,snakelen(head));
   	
   
 }
@@ -136,30 +145,36 @@ int main()
 void *getkey(void *p) 
 {   
    waitchar = 0;
-   char c = getch();
+   int c = getch();
 
    int change = 1;
-   switch (*(char *) p)
+   switch (*(int *) p)
    {
-     case 'w':
-	  if (c == 's') change = 0;
+     case 'w': case KEY_UP:
+	  if (c == 's' || c ==  KEY_DOWN) change = 0;
 	  break;
-     case 's':
-	  if (c == 'w') change = 0;
+     case 's': case KEY_DOWN:
+	  if (c == 'w' || c ==  KEY_UP) change = 0;
 	  break;
-     case 'a':
-	  if (c == 'd') change = 0;
+     case 'a': case KEY_LEFT:
+	  if (c == 'd' || c ==  KEY_RIGHT) change = 0;
 	  break;
-     case 'd':
-	  if (c == 'a') change = 0;
+     case 'd': case KEY_RIGHT:
+	  if (c == 'a' || c == KEY_LEFT) change = 0;
 	  break;
    } 
 
    if (change)
    	switch (c) 
     	{ 
-     		case 'w': case 'a': case 's': case 'd':
-       		*(char *) p = c;
+		case 'w': case 'a': case 's': case 'd': 
+		case  KEY_LEFT: case  KEY_RIGHT:  case KEY_UP: case  KEY_DOWN:  		  
+		  *(int *) p = c;
+		  break;
+		
+		case ' ': //pause button
+		  stop = 1;
+		  break;
     	}
   waitchar = 1;
 
