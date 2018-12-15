@@ -41,7 +41,7 @@ int main()
   Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT,2,2048);
   
   Mix_Music * music = Mix_LoadMUS("music.wav"); //background music
-  Mix_Chunk * snd = Mix_LoadWAV("suono.wav"); //eat sound
+  Mix_Chunk * snd = Mix_LoadWAV("sound.wav"); //eat sound
 
  
   Mix_PlayMusic(music,-1); 
